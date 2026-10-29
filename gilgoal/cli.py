@@ -87,9 +87,18 @@ def cmd_afford(args, storage: Storage) -> int:
 
 def cmd_export(args, storage: Storage) -> int:
     data = storage.load()
-    export_csv(data, args.path)
-    print(f"Exported {len(data.transactions)} transactions to {args.path}")
+    export_csv(data, args.output)
+    print(f"Exported {len(data.transactions)} transactions to {args.output}")
     return 0
+
+
+def add_data_flag(parser_obj: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser_obj.add_argument(
+        "--data",
+        default=DEFAULT_PATH,
+        help="JSON data file path (default: gil_data.json)",
+    )
+    return parser_obj
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -99,37 +108,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    def add_path(parser_obj: argparse.ArgumentParser) -> argparse.ArgumentParser:
-        parser_obj.add_argument("--path", default=DEFAULT_PATH, help="JSON data file path (default: gil_data.json)")
-        return parser_obj
-
-    p_init = add_path(sub.add_parser("init", help="create a new empty data file"))
+    p_init = add_data_flag(sub.add_parser("init", help="create a new empty data file"))
     p_init.set_defaults(func=cmd_init)
 
-    p_goal = add_path(sub.add_parser("set-goal", help="set the savings goal amount"))
+    p_goal = add_data_flag(sub.add_parser("set-goal", help="set the savings goal amount"))
     p_goal.add_argument("amount", type=parse_amount, help="goal amount in gil")
     p_goal.set_defaults(func=cmd_set_goal)
 
-    p_earn = add_path(sub.add_parser("earn", help="log gil earnings"))
+    p_earn = add_data_flag(sub.add_parser("earn", help="log gil earnings"))
     p_earn.add_argument("amount", type=parse_amount, help="amount earned in gil")
     p_earn.add_argument("note", nargs="?", default="", help="optional note")
     p_earn.set_defaults(func=cmd_earn)
 
-    p_spend = add_path(sub.add_parser("spend", help="log gil spending"))
+    p_spend = add_data_flag(sub.add_parser("spend", help="log gil spending"))
     p_spend.add_argument("amount", type=parse_amount, help="amount spent in gil")
     p_spend.add_argument("note", nargs="?", default="", help="optional note")
     p_spend.set_defaults(func=cmd_spend)
 
-    p_status = add_path(sub.add_parser("status", help="show progress toward the goal"))
+    p_status = add_data_flag(sub.add_parser("status", help="show progress toward the goal"))
     p_status.set_defaults(func=cmd_status)
 
-    p_afford = add_path(sub.add_parser("afford", help="check if current balance covers a purchase"))
+    p_afford = add_data_flag(
+        sub.add_parser("afford", help="check if current balance covers a purchase")
+    )
     p_afford.add_argument("amount", type=parse_amount, help="purchase cost in gil")
     p_afford.set_defaults(func=cmd_afford)
 
     p_export = sub.add_parser("export", help="export transactions to CSV")
-    p_export.add_argument("path", help="output CSV file path")
-    p_export.add_argument("--data", default=DEFAULT_PATH, help="JSON data file path (default: gil_data.json)")
+    p_export.add_argument("output", help="output CSV file path")
+    add_data_flag(p_export)
     p_export.set_defaults(func=cmd_export)
 
     return parser
@@ -138,8 +145,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    path = getattr(args, "data", None) or getattr(args, "path", None) or DEFAULT_PATH
-    storage = Storage(path)
+    storage = Storage(args.data)
     return args.func(args, storage)
 
 

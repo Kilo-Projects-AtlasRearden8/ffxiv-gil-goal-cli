@@ -7,14 +7,15 @@
 ## Contents
 
 - `gilgoal/cli.py` — argparse CLI: init, set-goal, earn, spend, status, afford, export
-- `gilgoal/goal.py` — goal math (balance, remaining, percent complete, can_afford)
+- `gilgoal/goal.py` — goal math (balance, remaining, percent complete capped 0–100, can_afford)
 - `gilgoal/storage.py` — atomic JSON read/write
 - `gilgoal/csv_export.py` — CSV export of transactions
 - `gilgoal/__main__.py` — `python3 -m gilgoal` entry point
-- `tests/test_goal.py` — pytest tests for goal math
+- `tests/test_goal.py` — pytest tests for goal math, storage round-trip, CSV export, and CLI behavior
 - `pyproject.toml` — packaging with `gilgoal` console script
 - `LICENSE` — MIT, Copyright (c) 2026 Asdale Dynamics, LLC
 - `README.md` — install/usage/credit, credits Asdale Dynamics, LLC
+- `.gitignore` — standard Python ignores
 
 ## How to run
 
@@ -38,19 +39,20 @@ gilgoal afford 80000
 gilgoal export gil_log.csv --data gil_data.json
 ```
 
+All commands accept `--data <path>` to choose the JSON data file (default: `gil_data.json`).
+
 ## Verification results
 
-- `pytest`: 5 passed (goal math: no goal, halfway, over-goal capped at 100%, overspend, can_afford)
+- `pytest`: 11 passed (goal math: no goal, halfway, over-goal capped at 100%, overspend clamped to 0%, can_afford; storage round-trip, missing file, atomic write leaves no .tmp; CSV export header + rows; CLI status output)
 - End-to-end CLI workflow verified: init, set-goal, earn, spend, status, afford, export all run and produce correct output (goal 1,000,000 gil; +150,000 earned; -42,000 spent; balance 108,000; remaining 892,000; 10.8%; CSV export writes header + 2 rows)
 - `pip install .` succeeds; `gilgoal` console script and `python3 -m gilgoal` both work
-- Committed as `6eef0ff` on branch `master` (local only; no remote, no push)
+- Committed on branch `master` (local only; no remote, no push)
 
 ## Known gaps
 
 - Single active goal only; no multiple or archived goals
 - No target date or per-day savings rate tracking
 - No editing or deleting individual transactions (append-only log)
-- No config file; data path passed with `--path`/`--data` each run
 - No automated backups or sync; data is local only
 - Installed manually with `pip install .`; no packaging CI (no `.github/workflows` by design)
 
