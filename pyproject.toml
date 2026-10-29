@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ffxiv-gil-goal-cli"
+version = "0.1.0"
+description = "Python CLI for FFXIV players to set a gil savings goal, log earnings and spending, and track progress with local JSON and CSV export."
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Asdale Dynamics, LLC"}]
+dependencies = []
+
+[project.scripts]
+gilgoal = "gilgoal.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gilgoal*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
